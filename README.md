@@ -9,6 +9,6 @@ The ResNet-101 frontend model is based on [flyyufelix's implementation](https://
 Additional bits of code were borrowed from [zhixuhao's UNet tes](https://github.com/zhixuhao/unet) and [aurora95's Keras-FCN](https://github.com/aurora95/Keras-FCN).
 
 ---
-Download ResNet-101 weights [here](https://drive.google.com/file/d/0Byy2AcGyEVxfTmRRVmpGWDczaXM/view?usp=sharing) and put in /models directory.
+Download ResNet-101 weights [here](https://drive.google.com/file/d/0Byy2AcGyEVxfTmRRVmpGWDczaXM/view?usp=sharing) and put in the 'model' directory.
 
 Work in progress.

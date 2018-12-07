@@ -15,16 +15,18 @@ class_dict = 'class_dict.csv'
 
 resnet_weights = 'model/resnet101_weights_tf.h5'
 
-input_shape = (1024,1024,3)
-batch_size = 2
+input_shape = (768,768,3)
+batch_size = 1
 
-data_gen_args = dict(rotation_range=0.1,
-                    width_shift_range=0.05,
-                    height_shift_range=0.05,
-                    shear_range=0.05,
-                    zoom_range=0.05,
-                    horizontal_flip=True,
-                    fill_mode='nearest')
+#data_gen_args = dict(rotation_range=0.1,
+#                    width_shift_range=0.05,
+#                    height_shift_range=0.05,
+#                    shear_range=0.05,
+#                    zoom_range=0.05,
+#                    horizontal_flip=True,
+#                    fill_mode='nearest')
+
+data_gen_args = dict()
 
 save_summary = True
 
@@ -35,11 +37,11 @@ class_names_list, mask_colors, num_class, class_names_string = get_label_info(os
 
 # Data generators for training
 myTrainGenerator = trainGenerator(batch_size,os.path.join(dataset_basepath,
-            'training'),'images','labels',data_gen_args,num_class,
-            input_shape,mask_colors=mask_colors)
+            'training'),'images','labels',num_class,input_shape,
+            data_gen_args,mask_colors=mask_colors)
 myValGenerator = trainGenerator(batch_size,os.path.join(dataset_basepath,
-            'validation'),'images','labels',data_gen_args,num_class,
-            input_shape,mask_colors=mask_colors)
+            'validation'),'images','labels',num_class,input_shape,
+            data_gen_args,mask_colors=mask_colors)
 
 # Define callbacks
 model_checkpoint = ModelCheckpoint('weights.{epoch:02d}-{val_loss:.2f}.hdf5',
@@ -57,7 +59,7 @@ lrate = LearningRateScheduler(step_decay)
 
 # Build and compile RefineNet
 model = build_refinenet(input_shape, num_class, resnet_weights)
-sgd = SGD(lr=1e-4, decay=1e-6, momentum=0.9, nesterov=True) # TODO: Tune optimizer
+sgd = SGD(lr = 1e-5, momentum = 0.9, nesterov = True) # TODO: Tune optimizer
 model.compile(optimizer=sgd, loss='categorical_crossentropy', metrics=['accuracy'])
 
 if save_summary:

@@ -178,7 +178,7 @@ def build_refinenet(input_shape, num_class, resnet_weights, upscaling_method='bi
 
     # Build ResNet-101
     model_base = resnet101_model(input_shape, weights_path)
-	model_base.trainable = False
+    model_base.trainable = False
 
     # Get ResNet block output layers
     high = [model_base.get_layer('res5c_relu').output,

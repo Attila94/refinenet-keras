@@ -28,6 +28,7 @@ def preprocMask(mask, num_class = 0, mask_colors = None):
     elif mask.shape[3] == 3:
         mask = one_hot_it(mask[0,:,:,:], mask_colors)
         mask = np.expand_dims(mask, axis=0)
+#        np.save(r'C:\Projects\MSc Thesis\git\code\image_segmentation\refinenet-keras\img\numpymask',mask) # save for debugging
     return mask
         
 
@@ -35,15 +36,15 @@ def trainGenerator(batch_size,
                    train_path,
                    image_folder,
                    mask_folder,
-                   aug_dict,
                    num_class,
                    target_size,
+                   aug_dict,
                    mask_colors = None,
                    image_color_mode = 'rgb',
                    mask_color_mode = 'rgb',
                    image_save_prefix  = 'image',
                    mask_save_prefix  = 'mask',
-                   save_to_dir = None,
+                   save_to_dir = r'C:\Projects\MSc Thesis\git\code\image_segmentation\refinenet-keras\img',
                    seed = 1):
     '''
     Data generator for training and validation.

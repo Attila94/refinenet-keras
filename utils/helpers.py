@@ -51,14 +51,13 @@ def one_hot_it(label, label_values):
         A 2D array with the same width and hieght as the input, but
         with a depth size of num_classes
     """
-
-    semantic_map = []
-    for colour in label_values:
+    imsize = label.shape[:2]
+    semantic_map = np.zeros((imsize[0],imsize[1],len(label_values)))
+    for i,colour in enumerate(label_values):
         # colour_map = np.full((label.shape[0], label.shape[1], label.shape[2]), colour, dtype=int)
         equality = np.equal(label, colour)
         class_map = np.all(equality, axis = -1)
-        semantic_map.append(class_map)
-    semantic_map = np.stack(semantic_map, axis=-1)
+        semantic_map[class_map,i] = 1
     return semantic_map
     
 def reverse_one_hot(image):

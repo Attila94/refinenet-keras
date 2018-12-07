@@ -44,7 +44,7 @@ def trainGenerator(batch_size,
                    mask_color_mode = 'rgb',
                    image_save_prefix  = 'image',
                    mask_save_prefix  = 'mask',
-                   save_to_dir = r'C:\Projects\MSc Thesis\git\code\image_segmentation\refinenet-keras\img',
+                   save_to_dir = None,
                    seed = 1):
     '''
     Data generator for training and validation.

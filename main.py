@@ -77,6 +77,6 @@ model.fit_generator(myTrainGenerator,
                     callbacks = [model_checkpoint, tbCallBack, lrate])
 
 # Test
-myTestGenerator = testGenerator(os.path.join(dataset_basepath,'data/test'))
+myTestGenerator = testGenerator(os.path.join(dataset_basepath,'testing/images'), input_shape)
 results = model.predict_generator(myTestGenerator, 30, verbose=1)
 saveResult('testing', results, mask_colors)

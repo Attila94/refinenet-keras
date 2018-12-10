@@ -11,7 +11,7 @@ import skimage.transform as trans
 from utils.helpers import one_hot_it, reverse_one_hot, colour_code_segmentation
 
 def preprocImage(img):
-    #TODO: check
+    # Subtract training means
     img[:,:,:,0] -= 103.939
     img[:,:,:,1] -= 116.779
     img[:,:,:,2] -= 123.68
@@ -99,8 +99,14 @@ def trainGenerator(batch_size,
         mask = preprocMask(mask, mask_colors = mask_colors)
         yield (img, mask)
 
+import skimage.io as io
+import numpy as np
+from utils.data import preprocImage, labelVisualize
+import skimage.transform as trans
+
 def testGenerator(test_path,
                   target_size,
+                  out_dir = None,
                   num_images = 30):
     '''
     Data generator for testing.
@@ -109,6 +115,7 @@ def testGenerator(test_path,
         test_path: Path to directory containing test images.
         target_size: Size to which input images are resized before being fed
             into RefineNet.
+        out_dir: Path to output directory.
         num_image: Number of images to process
     '''
     
@@ -118,18 +125,22 @@ def testGenerator(test_path,
             break
         file_path = os.path.join(test_path,file)
         img = io.imread(file_path)
+        if out_dir:
+          out_path = os.path.join(out_dir,'{}_image.png'.format(i))
+          io.imsave(out_path,img)
+        img = trans.resize(img,target_size[:2])
+        img = np.expand_dims(img, axis=0).astype('float64')
         img = preprocImage(img)
-        img = trans.resize(img,target_size)
-        img = np.reshape(img,(1,)+img.shape)
         yield img
 
 
 def labelVisualize(img, mask_colors):
     img = reverse_one_hot(img)
     img = colour_code_segmentation(img, mask_colors)
-    return img / 255
+    return img
 
-def saveResult(save_path, results, mask_colors):
+def saveResult(results, save_path, out_size, mask_colors):
     for i, item in enumerate(results):
         img = labelVisualize(item,mask_colors)
+        img = trans.resize(img,out_size[:2])
         io.imsave(os.path.join(save_path,"%d_predict.png"%i),img)

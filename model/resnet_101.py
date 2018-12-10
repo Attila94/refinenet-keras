@@ -168,7 +168,7 @@ def conv_block(input_tensor, kernel_size, filters, stage, block, strides=(2, 2))
     x = Activation('relu', name='res' + str(stage) + block + '_relu')(x)
     return x
 
-def resnet101_model(input_shape = (512, 512, 3), weights_path=None, include_fc=False):
+def resnet101_model(input_shape = (512, 512, 3), weights_path, freeze_frontend, include_fc=False):
     '''Instantiate the ResNet101 architecture,
     # Arguments
         weights_path: path to pretrained weight file
@@ -226,31 +226,3 @@ def resnet101_model(input_shape = (512, 512, 3), weights_path=None, include_fc=F
         print('ResNet weights loaded.')
 
     return model
-
-if __name__ == '__main__':
-
-#  im = cv2.resize(cv2.imread('cat.jpg'), (224, 224)).astype(np.float32)
-#
-#  # Remove train image mean
-#  im[:,:,0] -= 103.939
-#  im[:,:,1] -= 116.779
-#  im[:,:,2] -= 123.68
-    # Use pre-trained weights for Tensorflow backend
-    weights_path = 'resnet101_weights_tf.h5'
-    
-    # Include fully connected head
-    include_fc = False
-
-    # Insert a new dimension for the batch_size
-#    im = np.expand_dims(im, axis=0)
-  
-    # Test pretrained model
-    model = resnet101_model(weights_path=weights_path)
-    sgd = SGD(lr=1e-2, decay=1e-6, momentum=0.9, nesterov=True)
-    model.compile(optimizer=sgd, loss='categorical_crossentropy', metrics=['accuracy'])
-    with open('ResNet_summary.txt', 'w') as f:
-        with redirect_stdout(f):
-            model.summary()
-
-#  out = model.predict(im)
-#  print np.argmax(out)

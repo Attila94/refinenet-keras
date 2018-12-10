@@ -18,17 +18,20 @@ def preprocImage(img):
     img = img / 255
     return img
 
-def preprocMask(mask, num_class = 0, mask_colors = None):
-    if mask.shape[3] == 1:
+def preprocMask(mask, num_class, mask_colors = None):
+    batch_size, width, height = mask.shape[0:3]
+    if mask.shape[3] == 1: #class-encoded masks
         mask = mask[:,:,:,0] if(len(mask.shape) == 4) else mask[:,:,0]
         new_mask = np.zeros(mask.shape + (num_class,))
         for i in range(num_class):
             new_mask[mask == i,i] = 1
         mask = new_mask
-    elif mask.shape[3] == 3:
-        mask = one_hot_it(mask[0,:,:,:], mask_colors)
-        mask = np.expand_dims(mask, axis=0)
+    elif mask.shape[3] == 3: #color-encoded masks
+        mask_out = np.zeros((batch_size,width,height,num_class))
+        for i in range(batch_size):
+            mask_out[i,:,:,:] = one_hot_it(mask[i,:,:,:], mask_colors)
 #        np.save(r'C:\Projects\MSc Thesis\git\code\image_segmentation\refinenet-keras\img\numpymask',mask) # save for debugging
+        mask = mask_out
     return mask
         
 

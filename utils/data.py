@@ -99,11 +99,6 @@ def trainGenerator(batch_size,
         mask = preprocMask(mask, mask_colors = mask_colors)
         yield (img, mask)
 
-import skimage.io as io
-import numpy as np
-from utils.data import preprocImage, labelVisualize
-import skimage.transform as trans
-
 def testGenerator(test_path,
                   target_size,
                   out_dir = None,

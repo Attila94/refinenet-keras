@@ -12,6 +12,6 @@ Additional bits of code were borrowed from [zhixuhao's UNet tes](https://github.
 Currently training / evaluating, results and weights to be provided soon.
 
 ## Usage
-* Download ResNet-101 weights [here](https://drive.google.com/file/d/0Byy2AcGyEVxfTmRRVmpGWDczaXM/view?usp=sharing)
-* Specify ResNet-101 and dataset paths in `main.ipynb`
-* Build and train model.
+1. Download ResNet-101 weights [here](https://drive.google.com/file/d/0Byy2AcGyEVxfTmRRVmpGWDczaXM/view?usp=sharing)
+1. Specify ResNet-101 and dataset paths in `main.ipynb`
+1. Build and train model.

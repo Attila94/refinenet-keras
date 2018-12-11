@@ -19,7 +19,7 @@ def preprocImage(img):
     return img
 
 def preprocMask(mask, num_class, mask_colors = None):
-    batch_size, width, height = mask.shape[0:3]
+    batch_size, height, width = mask.shape[0:3]
     if mask.shape[3] == 1: #class-encoded masks
         mask = mask[:,:,:,0] if(len(mask.shape) == 4) else mask[:,:,0]
         new_mask = np.zeros(mask.shape + (num_class,))
@@ -27,7 +27,7 @@ def preprocMask(mask, num_class, mask_colors = None):
             new_mask[mask == i,i] = 1
         mask = new_mask
     elif mask.shape[3] == 3: #color-encoded masks
-        mask_out = np.zeros((batch_size,width,height,num_class))
+        mask_out = np.zeros((batch_size,height,width,num_class))
         for i in range(batch_size):
             mask_out[i,:,:,:] = one_hot_it(mask[i,:,:,:], mask_colors)
 #        np.save(r'C:\Projects\MSc Thesis\git\code\image_segmentation\refinenet-keras\img\numpymask',mask) # save for debugging
@@ -99,7 +99,7 @@ def trainGenerator(batch_size,
     train_generator = zip(image_generator, mask_generator)
     for (img,mask) in train_generator:
         img = preprocImage(img)
-        mask = preprocMask(mask, mask_colors = mask_colors)
+        mask = preprocMask(mask, num_class, mask_colors = mask_colors)
         yield (img, mask)
 
 def testGenerator(test_path,
@@ -127,14 +127,15 @@ def testGenerator(test_path,
           out_path = os.path.join(out_dir,'{}_image.png'.format(i))
           io.imsave(out_path,img)
         img = trans.resize(img,target_size[:2])
-        img = np.expand_dims(img, axis=0).astype('float64')
+        img = np.expand_dims(img, axis=0)
+        img = img*255
         img = preprocImage(img)
         yield img
 
 
 def labelVisualize(img, mask_colors):
     img = reverse_one_hot(img)
-    img = colour_code_segmentation(img, mask_colors)
+    img = colour_code_segmentation(img, mask_colors).astype('uint8')
     return img
 
 def saveResult(results, save_path, out_size, mask_colors):

@@ -6,6 +6,8 @@ This implementation is based on [GeorgeSeif's Semantic Segmentation Suite in Ten
 
 The ResNet-101 frontend model is based on [flyyufelix's implementation](https://gist.github.com/flyyufelix/65018873f8cb2bbe95f429c474aa1294).
 
+![Results](results.png)
+
 ---
 
 # Usage
@@ -68,11 +70,13 @@ The class corresponding to (0,0,0) will be ignored during both training and eval
 Performance of first trial evaluated on the CityScapes dataset.
 
 ## Overall
-| Mean accuracy (%) | 0.631 |
+| Metric | Score |
+| --- | --- |
+| Mean accuracy | 0.631 |
 | Mean IoU | 0.370 |
 
 ## Class-specific
-| Class | Accuracy (%) | IoU |
+| Class | Accuracy | IoU |
 | --- | --- | --- |
 | bicycle | 0.626 | 0.397 |
 | building | 0.883 | NaN |
@@ -93,5 +97,3 @@ Performance of first trial evaluated on the CityScapes dataset.
 | truck | 0.558 | 0.235 |
 | vegetation | 0.890 | NaN |
 | wall | 0.411 | NaN |
-
-(results.png)

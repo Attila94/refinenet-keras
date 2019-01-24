@@ -161,7 +161,7 @@ def RefineBlock(high_inputs=None,low_inputs=None):
 
 
 
-def build_refinenet(input_shape, num_class, resnet_weights, freeze_frontend, upscaling_method='bilinear'):
+def build_refinenet(input_shape, num_class, resnet_weights, frontend_trainable, upscaling_method='bilinear'):
     """
     Builds the RefineNet model. 
 
@@ -169,7 +169,7 @@ def build_refinenet(input_shape, num_class, resnet_weights, freeze_frontend, ups
       input_shape: Size of input image, including number of channels
       num_classes: Number of classes
       resnet_weights: Path to pre-trained weights for ResNet-101
-      freeze_frontend: Whether or not to freeze ResNet layers during training
+      frontend_trainable: Whether or not to freeze ResNet layers during training
       upscaling_method: Either 'bilinear' or 'conv'
 
     Returns:
@@ -177,8 +177,8 @@ def build_refinenet(input_shape, num_class, resnet_weights, freeze_frontend, ups
     """
     
     # Build ResNet-101
-    model_base = resnet101_model(input_shape, resnet_weights, freeze_frontend)
-    model_base.trainable = False
+    model_base = resnet101_model(input_shape, resnet_weights)
+    model_base.trainable = frontend_trainable
 
     # Get ResNet block output layers
     high = [model_base.get_layer('res5c_relu').output,

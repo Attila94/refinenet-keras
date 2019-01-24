@@ -5,8 +5,7 @@ from __future__ import print_function
 from keras.preprocessing.image import ImageDataGenerator
 import numpy as np 
 import os
-import skimage.io as io
-import skimage.transform as trans
+import cv2
 
 from utils.helpers import one_hot_it, reverse_one_hot, colour_code_segmentation
 
@@ -15,8 +14,7 @@ def preprocImage(img):
     img[:,:,:,0] -= 103.939
     img[:,:,:,1] -= 116.779
     img[:,:,:,2] -= 123.68
-    img = img / 255
-    return img
+    return img/255
 
 def preprocMask(mask, num_class, mask_colors = None):
     batch_size, height, width = mask.shape[0:3]
@@ -27,10 +25,10 @@ def preprocMask(mask, num_class, mask_colors = None):
             new_mask[mask == i,i] = 1
         mask = new_mask
     elif mask.shape[3] == 3: #color-encoded masks
+        # TODO: throw exception if mask_colors undefined
         mask_out = np.zeros((batch_size,height,width,num_class))
         for i in range(batch_size):
             mask_out[i,:,:,:] = one_hot_it(mask[i,:,:,:], mask_colors)
-#        np.save(r'C:\Projects\MSc Thesis\git\code\image_segmentation\refinenet-keras\img\numpymask',mask) # save for debugging
         mask = mask_out
     return mask
         
@@ -79,7 +77,7 @@ def trainGenerator(batch_size,
         classes = [image_folder],
         class_mode = None,
         color_mode = image_color_mode,
-        target_size = target_size[:2],
+        target_size = target_size,
         batch_size = batch_size,
         save_to_dir = save_to_dir,
         save_prefix  = image_save_prefix,
@@ -90,7 +88,7 @@ def trainGenerator(batch_size,
         classes = [mask_folder],
         class_mode = None,
         color_mode = mask_color_mode,
-        target_size = target_size[:2],
+        target_size = target_size,
         batch_size = batch_size,
         save_to_dir = save_to_dir,
         save_prefix  = mask_save_prefix,
@@ -104,8 +102,8 @@ def trainGenerator(batch_size,
 
 def testGenerator(test_path,
                   target_size,
-                  out_dir = None,
-                  num_images = 30):
+                  batch_size,
+                  out_dir = None):
     '''
     Data generator for testing.
     
@@ -113,33 +111,37 @@ def testGenerator(test_path,
         test_path: Path to directory containing test images.
         target_size: Size to which input images are resized before being fed
             into RefineNet.
+        batch_size: Images per batch.
         out_dir: Path to output directory.
-        num_image: Number of images to process
     '''
+    image_datagen = ImageDataGenerator()
     
-    files = next(os.walk(test_path))[2]
-    for i, file in enumerate(files):
-        if i == num_images:
-            break
-        file_path = os.path.join(test_path,file)
-        img = io.imread(file_path)
-        if out_dir:
-          out_path = os.path.join(out_dir,'{}_image.png'.format(i))
-          io.imsave(out_path,img)
-        img = trans.resize(img,target_size[:2])
-        img = np.expand_dims(img, axis=0)
-        img = img*255
-        img = preprocImage(img)
-        yield img
+    image_generator = image_datagen.flow_from_directory(
+        os.path.dirname(test_path),
+        classes = [os.path.basename(test_path)],
+        class_mode = None,
+        target_size = target_size,
+        batch_size = batch_size,
+        shuffle = False)
 
+    for batch in image_generator:
+        idx = ((image_generator.batch_index - 1)%len(image_generator)) * image_generator.batch_size
+        file_names = image_generator.filenames[idx : idx + image_generator.batch_size]
+        if out_dir:
+            for img, file_name in zip(batch,file_names):
+                cv2.imwrite(os.path.join(out_dir,os.path.basename(file_name)), img[:,:,::-1])
+        batch = preprocImage(batch)
+        if image_generator.batch_index == 0:
+            yield batch, file_names
+            return
+        yield batch, file_names
 
 def labelVisualize(img, mask_colors):
     img = reverse_one_hot(img)
     img = colour_code_segmentation(img, mask_colors).astype('uint8')
     return img
 
-def saveResult(results, save_path, out_size, mask_colors):
-    for i, item in enumerate(results):
-        img = labelVisualize(item,mask_colors)
-        img = trans.resize(img,out_size[:2])
-        io.imsave(os.path.join(save_path,"%d_predict.png"%i),img)
+def saveResult(results, save_path, file_names, mask_colors):
+    for img, file_name in zip(results, file_names):
+        img = labelVisualize(img, mask_colors)
+        cv2.imwrite(os.path.join(save_path, os.path.basename(file_name)), img[:,:,::-1])

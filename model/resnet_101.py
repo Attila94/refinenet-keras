@@ -168,7 +168,7 @@ def conv_block(input_tensor, kernel_size, filters, stage, block, strides=(2, 2))
     x = Activation('relu', name='res' + str(stage) + block + '_relu')(x)
     return x
 
-def resnet101_model(input_shape, weights_path, freeze_frontend, include_fc=False):
+def resnet101_model(input_shape, weights_path, include_fc=False):
     '''Instantiate the ResNet101 architecture,
     # Arguments
         weights_path: path to pretrained weight file

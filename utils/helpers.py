@@ -2,7 +2,28 @@
 Based on https://github.com/GeorgeSeif/Semantic-Segmentation-Suite/
 '''
 import numpy as np
-import os, csv
+import os, csv, math
+from time import localtime, strftime
+from contextlib import redirect_stdout
+import keras
+from keras.losses import categorical_crossentropy
+
+def step_decay(epoch):
+    """
+    Define custom learning rate schedule
+    """
+    initial_lrate = 1e-5
+    drop = 0.5
+    epochs_drop = 5.0
+    lrate = initial_lrate * math.pow(drop, math.floor((1+epoch)/epochs_drop))
+    return lrate
+    
+def ignore_unknown_xentropy(ytrue, ypred):
+    """
+    Define custom loss function to ignore void class (https://github.com/keras-team/keras/issues/6261)
+    Assuming last class is void
+    """
+    return (1-ytrue[:, :, :, -1])*categorical_crossentropy(ytrue, ypred)
 
 def get_label_info(csv_path):
     """
@@ -94,3 +115,79 @@ def colour_code_segmentation(image, label_values):
     x = colour_codes[image.astype(int)]
 
     return x
+    
+class LossHistory(keras.callbacks.Callback):
+    def __init__(self, batch_log_path, epoch_log_path):
+        self.epoch = 0
+        self.batch_log_path = batch_log_path
+        self.epoch_log_path = epoch_log_path
+        with open(self.batch_log_path, 'a') as batch_log:
+            batch_log.write('epoch,epoch_step,loss,acc\n')
+        with open(self.epoch_log_path, 'a') as epoch_log:
+            epoch_log.write('epoch,loss,acc,val_loss,val_acc\n')
+
+    def on_batch_end(self, batch, logs={}):
+        with open(self.batch_log_path, 'a') as batch_log:
+            batch_log.write('{},{},{},{}\n'.format(self.epoch,batch,logs.get('loss'),logs.get('acc')))
+
+    def on_epoch_end(self, epoch, logs={}):
+        self.epoch += 1
+        with open(self.epoch_log_path, 'a') as epoch_log:
+            epoch_log.write('{},{},{},{},{}\n'.format(epoch,logs.get('loss'),logs.get('acc'),logs.get('val_loss'),logs.get('val_acc')))
+
+def gen_dirs():
+    """
+    Generate directory structure for storing files produced during current run.
+    """
+    date_time = strftime("%Y%m%d-%H%M%S", localtime())
+    run_dir = os.path.join('runs',date_time)
+    summary_path = os.path.join(run_dir,'RefineNet_summary.txt')
+    settings_path = os.path.join(run_dir,'settings.txt')
+    epoch_log_path = os.path.join(run_dir,'epoch_log_'+date_time+'.csv')
+    batch_log_path = os.path.join(run_dir,'batch_log_'+date_time+'.csv')
+    weight_dir = os.path.join(run_dir,'weights')
+    tb_dir = os.path.join(run_dir,'log')
+    if not os.path.exists(run_dir):
+        os.makedirs(run_dir)
+        os.makedirs(weight_dir)
+        os.makedirs(tb_dir)
+    dirs = {'date_time' : date_time,
+            'run_dir' : run_dir,
+            'summary_path' : summary_path,
+            'settings_path' : settings_path,
+            'epoch_log_path' : epoch_log_path,
+            'batch_log_path' : batch_log_path,
+            'weight_dir' : weight_dir,
+            'tb_dir' : tb_dir}
+    return dirs
+
+def save_settings(settings_path,
+                  summary_path,
+                  resnet_trainable = None,
+                  datagen_args = None,
+                  batch_size = None,
+                  input_shape = None,
+                  dataset_basepath = None,
+                  resnet_weights = None,
+                  steps_per_epoch = None,
+                  epochs = None,
+                  pre_trained_weights = None,
+                  model = None):
+    """
+    Save summary of training settings used in current run.
+    """
+    
+    with open(summary_path, 'w') as f:
+        with redirect_stdout(f):
+            model.summary()
+    
+    with open(settings_path, 'w') as f:
+        f.write('ResNet weights trainable: {}\n'.format(resnet_trainable))
+        f.write('Data augmentation settings: {}\n'.format(datagen_args))
+        f.write('Batch size: {}\n'.format(batch_size))
+        f.write('Input shape: {}\n'.format(input_shape))
+        f.write('Dataset path: {}\n'.format(dataset_basepath))
+        f.write('ResNet weights path: {}\n'.format(resnet_weights))
+        f.write('Steps per epoch: {}\n'.format(steps_per_epoch))
+        f.write('Epochs: {}\n'.format(epochs))
+        f.write('Pre-trained weights: {}\n'.format(pre_trained_weights))

@@ -1,8 +1,8 @@
-.gitignore
 .git
 *.h5
 __pycache__
 .ipynb_checkpoints
-log
 main.py
+runs
+predictions
 RefineNet_summary.txt

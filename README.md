@@ -72,11 +72,11 @@ Performance of first trial evaluated on the CityScapes dataset.
 ## Overall
 | Metric | Score |
 | --- | --- |
-| Mean accuracy | 0.631 |
-| Mean IoU | 0.370 |
+| IoU | 0.631 |
+| nIoU | 0.370 |
 
 ## Class-specific
-| Class | Accuracy | IoU |
+| Class | IoU | nIoU |
 | --- | --- | --- |
 | bicycle | 0.626 | 0.397 |
 | building | 0.883 | NaN |

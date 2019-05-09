@@ -6,6 +6,8 @@ ResNet-101 frontend model from [flyyufelix's gist](https://gist.github.com/flyyu
 
 ![Results](results.png)
 
+![Results](results.png)
+
 ---
 
 # Usage

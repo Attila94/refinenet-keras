@@ -1,14 +1,11 @@
 # -*- coding: utf-8 -*-
 
-from keras.layers import Input, Dense, Conv2D, MaxPooling2D, AveragePooling2D, ZeroPadding2D, Flatten, Add, Activation
-from keras.optimizers import SGD
+from keras.layers import Input, Conv2D, MaxPooling2D, ZeroPadding2D, Add, Activation
 from keras.layers.normalization import BatchNormalization
 from keras.models import Model
 from keras import initializers
 from keras.engine import Layer, InputSpec
 from keras import backend as K
-
-from contextlib import redirect_stdout
 
 import sys
 sys.setrecursionlimit(3000)
@@ -17,11 +14,8 @@ class Scale(Layer):
     '''Learns a set of weights and biases used for scaling the input data.
     the output consists simply in an element-wise multiplication of the input
     and a sum of a set of constants:
-
         out = in * gamma + beta,
-
     where 'gamma' and 'beta' are the weights and biases larned.
-
     # Arguments
         axis: integer, axis along which to normalize in mode 0. For instance,
             if your input tensor has shape (samples, channels, rows, cols),
@@ -33,15 +27,15 @@ class Scale(Layer):
             List of 2 Numpy arrays, with shapes:
             `[(input_shape,), (input_shape,)]`
         beta_init: name of initialization function for shift parameter
-            (see [initializers](../initializers.md)), or alternatively,
+            (see [initializations](../initializations.md)), or alternatively,
             Theano/TensorFlow function to use for weights initialization.
             This parameter is only relevant if you don't pass a `weights` argument.
         gamma_init: name of initialization function for scale parameter (see
-            [initializers](../initializers.md)), or alternatively,
+            [initializations](../initializations.md)), or alternatively,
             Theano/TensorFlow function to use for weights initialization.
                         This parameter is only relevant if you don't pass a `weights` argument.
         gamma_init: name of initialization function for scale parameter (see
-            [initializers](../initializers.md)), or alternatively,
+            [initializations](../initializations.md)), or alternatively,
             Theano/TensorFlow function to use for weights initialization.
             This parameter is only relevant if you don't pass a `weights` argument.
     '''
@@ -78,9 +72,7 @@ class Scale(Layer):
         return dict(list(base_config.items()) + list(config.items()))
 
 def identity_block(input_tensor, kernel_size, filters, stage, block):
-    '''The identity_block is the block that has no conv layer at shortcut, e.g.
-    the implementation of the second to final layers of each block.
-    
+    '''The identity_block is the block that has no conv layer at shortcut
     # Arguments
         input_tensor: input tensor
         kernel_size: defualt 3, the kernel size of middle conv layer at main path
@@ -94,13 +86,11 @@ def identity_block(input_tensor, kernel_size, filters, stage, block):
     bn_name_base = 'bn' + str(stage) + block + '_branch'
     scale_name_base = 'scale' + str(stage) + block + '_branch'
 
-    # First conv layer in sub-block
     x = Conv2D(nb_filter1, (1, 1), name=conv_name_base + '2a', use_bias=False)(input_tensor)
     x = BatchNormalization(epsilon=eps, axis=bn_axis, name=bn_name_base + '2a')(x)
     x = Scale(axis=bn_axis, name=scale_name_base + '2a')(x)
     x = Activation('relu', name=conv_name_base + '2a_relu')(x)
 
-    # Second conv layer in sub-block
     x = ZeroPadding2D((1, 1), name=conv_name_base + '2b_zeropadding')(x)
     x = Conv2D(nb_filter2, kernel_size,
                       name=conv_name_base + '2b', use_bias=False)(x)
@@ -108,20 +98,16 @@ def identity_block(input_tensor, kernel_size, filters, stage, block):
     x = Scale(axis=bn_axis, name=scale_name_base + '2b')(x)
     x = Activation('relu', name=conv_name_base + '2b_relu')(x)
 
-    # Third conv layer in sub-block
     x = Conv2D(nb_filter3, (1, 1), name=conv_name_base + '2c', use_bias=False)(x)
     x = BatchNormalization(epsilon=eps, axis=bn_axis, name=bn_name_base + '2c')(x)
     x = Scale(axis=bn_axis, name=scale_name_base + '2c')(x)
 
-    # Add input and third conv layer
     x = Add(name='res' + str(stage) + block)([x, input_tensor])
     x = Activation('relu', name='res' + str(stage) + block + '_relu')(x)
     return x
 
 def conv_block(input_tensor, kernel_size, filters, stage, block, strides=(2, 2)):
-    '''conv_block is the "bottleneck" building block, e.g. the implementation
-    of the conv2_1, conv3_1, conv4_1 and conv5_1 blocks.
-    
+    '''conv_block is the block that has a conv layer at shortcut
     # Arguments
         input_tensor: input tensor
         kernel_size: defualt 3, the kernel size of middle conv layer at main path
@@ -136,39 +122,34 @@ def conv_block(input_tensor, kernel_size, filters, stage, block, strides=(2, 2))
     conv_name_base = 'res' + str(stage) + block + '_branch'
     bn_name_base = 'bn' + str(stage) + block + '_branch'
     scale_name_base = 'scale' + str(stage) + block + '_branch'
-    
-    # First conv layer in sub-block (1x1)
+
     x = Conv2D(nb_filter1, (1, 1), strides=strides,
                       name=conv_name_base + '2a', use_bias=False)(input_tensor)
     x = BatchNormalization(epsilon=eps, axis=bn_axis, name=bn_name_base + '2a')(x)
     x = Scale(axis=bn_axis, name=scale_name_base + '2a')(x)
     x = Activation('relu', name=conv_name_base + '2a_relu')(x)
 
-    # Second conv layer in sub-block
     x = ZeroPadding2D((1, 1), name=conv_name_base + '2b_zeropadding')(x)
     x = Conv2D(nb_filter2, kernel_size,
                       name=conv_name_base + '2b', use_bias=False)(x)
     x = BatchNormalization(epsilon=eps, axis=bn_axis, name=bn_name_base + '2b')(x)
     x = Scale(axis=bn_axis, name=scale_name_base + '2b')(x)
     x = Activation('relu', name=conv_name_base + '2b_relu')(x)
-    
-    # Third conv layer in sub-block (1x1)
+
     x = Conv2D(nb_filter3, (1, 1), name=conv_name_base + '2c', use_bias=False)(x)
     x = BatchNormalization(epsilon=eps, axis=bn_axis, name=bn_name_base + '2c')(x)
     x = Scale(axis=bn_axis, name=scale_name_base + '2c')(x)
 
-    # Residual connection
     shortcut = Conv2D(nb_filter3, (1, 1), strides=strides,
                              name=conv_name_base + '1', use_bias=False)(input_tensor)
     shortcut = BatchNormalization(epsilon=eps, axis=bn_axis, name=bn_name_base + '1')(shortcut)
     shortcut = Scale(axis=bn_axis, name=scale_name_base + '1')(shortcut)
 
-    # Add third conv layer and residual
     x = Add(name='res' + str(stage) + block)([x, shortcut])
     x = Activation('relu', name='res' + str(stage) + block + '_relu')(x)
     return x
 
-def resnet101_model(input_shape, weights_path, include_fc=False):
+def resnet101_model(input_shape, weights_path=None):
     '''Instantiate the ResNet101 architecture,
     # Arguments
         weights_path: path to pretrained weight file
@@ -177,6 +158,7 @@ def resnet101_model(input_shape, weights_path, include_fc=False):
     '''
     eps = 1.1e-5
 
+    # Handle Dimension Ordering for different backends
     global bn_axis
     bn_axis = 3
     img_input = Input(shape=input_shape, name='data')
@@ -186,8 +168,8 @@ def resnet101_model(input_shape, weights_path, include_fc=False):
     x = BatchNormalization(epsilon=eps, axis=bn_axis, name='bn_conv1')(x)
     x = Scale(axis=bn_axis, name='scale_conv1')(x)
     x = Activation('relu', name='conv1_relu')(x)
-    x = MaxPooling2D((3, 3), strides=(2, 2), name='pool1', padding='same')(x)
-
+    x = MaxPooling2D((3, 3), strides=(2, 2), name='pool1', padding = 'same')(x)
+    
     # Block 1
     x = conv_block(x, (3,3), [64, 64, 256], stage=2, block='a', strides=(1,1)) #conv2_1
     x = identity_block(x, (3,3), [64, 64, 256], stage=2, block='b') #conv2_2
@@ -210,19 +192,10 @@ def resnet101_model(input_shape, weights_path, include_fc=False):
     x = identity_block(x, (3,3), [512, 512, 2048], stage=5, block='b') #conv5_2
     block_4_out = identity_block(x, (3,3), [512, 512, 2048], stage=5, block='c') #conv5_3
     
-    if include_fc:
-        x_fc = AveragePooling2D((7, 7), name='avg_pool')(block_4_out)
-        x_fc = Flatten()(x_fc)
-        x_fc = Dense(1000, activation='softmax', name='fc1000')(x_fc)
-
-        model = Model(img_input, x_fc)
-    else:
-        model = Model(img_input, block_4_out)
-    
-    # load weights
+    model = Model(inputs = [img_input], outputs = [block_4_out, block_3_out, block_2_out, block_1_out])
+  
     if weights_path:
-        print('Loading ResNet weights...')
         model.load_weights(weights_path, by_name=True)
-        print('ResNet weights loaded.')
+        print('Frontend weights loaded.')
 
     return model

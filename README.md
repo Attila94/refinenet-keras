@@ -9,6 +9,7 @@ ResNet-101 frontend model from [flyyufelix's gist](https://gist.github.com/flyyu
 ---
 
 # Usage
+> **WARNING**: The pre-trained weights provided in the links below are not compatible with the current version of the model! To use the weights, checkpout an earlier version of the repo (which has the old, incorrect model architecture) or train your network from scratch.
 ResNet-101 weights can be downloaded [here](https://my.syncplicity.com/share/m1qj80sthgfalaz/resnet101_weights_tf).
 Pre-trained weights for CityScapes can be downloaded [here](https://my.syncplicity.com/share/cptvaesdqgw49vf/refinenet_baseline).
 

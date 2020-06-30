@@ -1,5 +1,9 @@
 # RefineNet: a Keras implementation
 
+> **NOTE**: I stopped using Keras a while ago and as such am no longer supporting this repo. Also, I recommend everybody to try PyTorch.
+
+> **KNOWN ISSUE**: For some unknown reason the model gets stuck in some local minimum during training and predicts everything as black. If you encounter this issue, sorry! I don't know the answer. If you figure out a solution please add a pull request.
+
 Paper: https://arxiv.org/abs/1611.06612
 
 ResNet-101 frontend model from [flyyufelix's gist](https://gist.github.com/flyyufelix/65018873f8cb2bbe95f429c474aa1294).
